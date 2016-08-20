@@ -1,6 +1,6 @@
 import rest from "restler"
 
-export default (info) => {
+export default async (info) => {
 
     const getListenerUID = (listenerInfo) => new Promise((resolve, reject) => {
         rest.post(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, {
@@ -13,17 +13,20 @@ export default (info) => {
         if (streams.streamListeners[listenerInfo.id].statsPromise) {
             streams.streamListeners[listenerInfo.id].statsPromise.then(({ uid }) => {
                 rest.post(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/close-session`, {
-                    body: {uid},
+                    body: { uid },
                 })
             })
         }
     }
 
-    const closeAllSessions = () => {
+    const closeAllSessions = () => new Promise((resolve) => {
         rest.post(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/close-all-sessions`)
-    }
+        .on("complete", () => {
+            resolve()
+        })
+    })
 
-    closeAllSessions()
+    await closeAllSessions()
 
     events.on("listenerTunedIn", (listenerInfo) => {
         streams.streamListeners[listenerInfo.id].statsPromise = getListenerUID(listenerInfo)

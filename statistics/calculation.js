@@ -62,5 +62,33 @@ export default (info) => {
         })
     }
 
+    const calculateLastHour = () => {
+        rest.get(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-last-hour-sessions`)
+        .on("complete", (sessions) => {
+            countListeners(sessions)
+            countClients(sessions)
+            calculateTLH(sessions)
+            calculateAverageSessionTime(sessions)
+            if (config.geoservices && config.geoservices.enabled) {
+                countCountries(sessions)
+            }
+        })
+    }
+
+    const calculateLastDay = () => {
+        rest.get(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-last-day-sessions`)
+        .on("complete", (sessions) => {
+            countListeners(sessions)
+            countClients(sessions)
+            calculateTLH(sessions)
+            calculateAverageSessionTime(sessions)
+            if (config.geoservices && config.geoservices.enabled) {
+                countCountries(sessions)
+            }
+        })
+    }
+
     setInterval(calculateLastMinute, 60 * 1000)
+    setInterval(calculateLastHour, 60 * 60 * 1000)
+    setInterval(calculateLastDay, 24 * 60 * 60 * 1000)
 }
