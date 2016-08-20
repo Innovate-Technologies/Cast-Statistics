@@ -1,0 +1,16 @@
+{
+  "name": "Cast-Statistics",
+  "version": "0.0.1",
+  "description": "A plugin for Cast that stores statistics in ITFrame",
+  "main": "server.js",
+  "author": "Innovate Technologies",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/innovate-technologies/Cast-Statistics/issues"
+  },
+  "homepage": "https://github.com/innovate-technologies/Cast-Statistics",
+  "dependencies": {
+    "restler": "^3.4.0",
+    "underscore": "^1.8.3"
+  }
+}
