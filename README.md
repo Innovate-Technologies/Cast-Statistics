@@ -1,4 +1,4 @@
-Cast Statistics
+Cast Statistics [![Build Status](https://travis-ci.org/innovate-technologies/Cast-Statistics.svg?branch=master)](https://travis-ci.org/innovate-technologies/Cast-Statistics)
 ===============
 This is a plugin written for [Cast](https://github.com/Innovate-Technologies/Cast) that interacts with [ITFrame](https://github.com/Innovate-Technologies/ITFrame) to log listener sessions in a database and calculate the statistics.
 
