@@ -3,18 +3,20 @@ import rest from "restler"
 export default async (info) => {
 
     const getListenerUID = (listenerInfo) => new Promise((resolve, reject) => {
-        rest.post(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, {
+        rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, listenerInfo, {
             timeout: 100000,
-            body: listenerInfo,
-        }).on("complete", body => resolve(body)).on("timeout", err => reject(err))
+        }).on("complete", (body) => {
+            resolve(body)
+        }).on("timeout", (err) => {reject(err)})
     })
 
     const closeListenerSession = (listenerInfo) => {
-        if (streams.streamListeners[listenerInfo.id].statsPromise) {
-            streams.streamListeners[listenerInfo.id].statsPromise.then(({ uid }) => {
-                rest.post(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/close-session`, {
-                    body: { uid },
-                })
+        if (listenerInfo.statsPromise) {
+            listenerInfo.statsPromise.then(({ uid }) => {
+                if (!uid) {
+                    return
+                }
+                rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/close-session`, { uid })
             })
         }
     }
@@ -29,7 +31,7 @@ export default async (info) => {
     await closeAllSessions()
 
     events.on("listenerTunedIn", (listenerInfo) => {
-        streams.streamListeners[listenerInfo.id].statsPromise = getListenerUID(listenerInfo)
+        streams.streamListeners[listenerInfo.stream][listenerInfo.id].statsPromise = getListenerUID(listenerInfo)
     })
     events.on("listenerTunedOut", closeListenerSession)
 }
