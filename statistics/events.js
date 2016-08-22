@@ -11,7 +11,7 @@ export default async (info) => {
     })
 
     const closeListenerSession = (listenerInfo) => {
-        if (listenerInfo.statsPromise) {
+        if (listenerInfo && listenerInfo.statsPromise) {
             listenerInfo.statsPromise.then(({ uid }) => {
                 if (!uid) {
                     return
