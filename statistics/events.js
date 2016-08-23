@@ -1,4 +1,5 @@
 import rest from "restler"
+import _ from "underscore"
 
 export default async (info) => {
 
@@ -53,7 +54,7 @@ export default async (info) => {
         if (!listenerInfo) {
             return;
         }
-        streams.streamListeners[listenerInfo.stream][listenerInfo.id].statsPromise = getListenerUID(listenerInfo)
+        (_.findWhere(streams.streamListeners[listenerInfo.stream][listenerInfo.id], { id: listenerInfo.id }) || {} ).statsPromise = getListenerUID(listenerInfo) 
     })
     events.on("listenerTunedOut", closeListenerSession)
 }
