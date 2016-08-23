@@ -54,7 +54,11 @@ export default async (info) => {
         if (!listenerInfo) {
             return;
         }
-        (_.findWhere(streams.streamListeners[listenerInfo.stream][listenerInfo.id], { id: listenerInfo.id }) || {} ).statsPromise = getListenerUID(listenerInfo) 
+        try {
+            _.findWhere(streams.streamListeners[listenerInfo.stream][listenerInfo.id], { id: listenerInfo.id }).statsPromise = getListenerUID(listenerInfo)
+        } catch (error) {
+            console.log(error)
+        }
     })
     events.on("listenerTunedOut", closeListenerSession)
 }
