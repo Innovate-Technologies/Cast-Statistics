@@ -50,6 +50,9 @@ export default async (info) => {
     await closeAllSessions()
 
     events.on("listenerTunedIn", (listenerInfo) => {
+        if (!listenerInfo) {
+            return;
+        }
         streams.streamListeners[listenerInfo.stream][listenerInfo.id].statsPromise = getListenerUID(listenerInfo)
     })
     events.on("listenerTunedOut", closeListenerSession)
