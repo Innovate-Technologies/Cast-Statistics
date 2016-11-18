@@ -35,6 +35,9 @@ export default async (info) => {
                     this.retry(2000)
                 })
             })
+        } else {
+            console.log(listenerInfo)
+            console.log(listenerPromises[listenerInfo.id])
         }
     }
 
@@ -58,6 +61,7 @@ export default async (info) => {
             return;
         }
         try {
+            console.log("Registering " + listenerInfo.id)
             listenerPromises[listenerInfo.id] = getListenerUID(listenerInfo)
             // _.findWhere(streams.streamListeners[listenerInfo.stream][listenerInfo.id], { id: listenerInfo.id }).statsPromise = getListenerUID(listenerInfo)
         } catch (error) {
