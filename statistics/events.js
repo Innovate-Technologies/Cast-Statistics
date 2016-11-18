@@ -1,5 +1,4 @@
 import rest from "restler"
-import _ from "underscore"
 
 export default async (info) => {
 
