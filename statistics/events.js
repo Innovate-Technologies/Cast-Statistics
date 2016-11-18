@@ -2,7 +2,7 @@ import rest from "restler"
 
 export default async (info) => {
 
-    const listenerPromises = {}
+    const listenerPromisesPerStream = {}
 
     const getListenerUID = (listenerInfo) => new Promise((resolve) => {
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, listenerInfo, {
@@ -18,8 +18,8 @@ export default async (info) => {
     })
 
     const closeListenerSession = (listenerInfo) => {
-        if (listenerInfo && listenerInfo.id && listenerPromises[listenerInfo.id]) {
-            listenerPromises[listenerInfo.id].then(({ uid }) => {
+        if (listenerInfo && listenerInfo.id && listenerPromisesPerStream[listenerInfo.stream] && listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]) {
+            listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id].then(({ uid }) => {
                 if (!uid) {
                     return
                 }
@@ -29,14 +29,14 @@ export default async (info) => {
                     if (response.statusCode !== 200 && response.statusCode !== 204) {
                         return this.retry(2000)
                     }
-                    delete listenerPromises[listenerInfo.id]
+                    delete listenerPromisesPerStream[listenerInfo.stream]
                 }).on("timeout", function () {
                     this.retry(2000)
                 })
             })
         } else {
             console.log(listenerInfo)
-            console.log(listenerPromises[listenerInfo.id])
+            console.log(listenerPromisesPerStream[listenerInfo.stream])
         }
     }
 
@@ -60,8 +60,11 @@ export default async (info) => {
             return;
         }
         try {
-            console.log("Registering " + listenerInfo.id)
-            listenerPromises[listenerInfo.id] = getListenerUID(listenerInfo)
+            console.log("Registering " + listenerInfo.id + "on" + listenerInfo.stream)
+            if (!listenerPromisesPerStream[listenerInfo.stream]) {
+                listenerPromisesPerStream[listenerInfo.stream] = {}
+            }
+            listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id] = getListenerUID(listenerInfo)
             // _.findWhere(streams.streamListeners[listenerInfo.stream][listenerInfo.id], { id: listenerInfo.id }).statsPromise = getListenerUID(listenerInfo)
         } catch (error) {
             console.log(error)
