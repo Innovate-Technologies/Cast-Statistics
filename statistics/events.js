@@ -29,7 +29,7 @@ export default async (info) => {
                     if (response.statusCode !== 200 && response.statusCode !== 204) {
                         return this.retry(2000)
                     }
-                    delete listenerPromisesPerStream[listenerInfo.stream]
+                    delete listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]
                 }).on("timeout", function () {
                     this.retry(2000)
                 })
