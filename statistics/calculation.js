@@ -37,27 +37,43 @@ const countCountries = (sessions) => {
     return clients
 }
 
-const calculateTLH = (sessions) => {
-    let totalSeconds = 0
+const calculateTLH = (sessions, startTime, endTime) => {
+    let totalMilliSeconds = 0
     for (let session of sessions) {
-        if (!session.endTime) {
-            session.endTime = Math.floor(new Date().getTime() / 1000)
+        session.startTime = new Date(session.startTime)
+        if (session.startTime < startTime) {
+            session.startTime = startTime
         }
-        totalSeconds += session.endTime - session.startTime
+        if (!session.endTime) {
+            session.endTime = endTime
+        } else {
+            session.endTime = new Date(session.endTime)
+        }
+        totalMilliSeconds += session.endTime.getTime() - session.startTime.getTime()
     }
-    return totalSeconds / 60 / 60 // seconds to hour
+    return totalMilliSeconds / 60 / 60 / 1000 // milliseconds to hour
 }
 
-const calculateAverageSessionTime = (sessions) => {
-    let totalSeconds = 0
+const calculateAverageSessionTime = (sessions, startTime, endTime) => {
+    let totalMilliSeconds = 0
+    let usefulSessions = 0
     for (let session of sessions) {
-        if (!session.endTime) {
-            session.endTime = Math.floor(new Date().getTime() / 1000)
+        session.startTime = new Date(session.startTime)
+        if (session.startTime < startTime) {
+            session.startTime = startTime
         }
-        totalSeconds += session.endTime - session.startTime
+        if (!session.endTime) {
+            session.endTime = endTime
+        } else {
+            session.endTime = new Date(session.endTime)
+        }
+        const diffTime = session.endTime.getTime() - session.startTime.getTime()
+        if (diffTime > 5 ) { // Under 5 seconds is't a real session
+            usefulSessions++
+            totalMilliSeconds += session.endTime.getTime() - session.startTime.getTime()
+        }
     }
-
-    return totalSeconds / sessions.length
+    return (totalMilliSeconds / 1000) / usefulSessions
 }
 
 export default (info) => {
@@ -76,15 +92,20 @@ export default (info) => {
     }
 
     const calculateLastHour = () => {
-        rest.get(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${(new Date((new Date()).getTime() - ONE_HOUR)).toJSON()}/${(new Date()).toJSON()}`)
+        const startTime = new Date((new Date()).getTime() - ONE_HOUR)
+        const endTime = new Date()
+        rest.get(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${startTime.toJSON()}/${endTime.toJSON()}`)
             .on("complete", (sessions) => {
-                countListeners(sessions)
-                countClients(sessions)
-                calculateTLH(sessions)
-                calculateAverageSessionTime(sessions)
+                let countryList = null;
+                const uniqueListeners = groupUniqueListeners(sessions)
+                const clientCount = countClients(sessions)
+                const returningListeners = countReturningListeners(sessions)
+                const tlh = calculateTLH(sessions, startTime, endTime)
+                const averageSessionTime = calculateAverageSessionTime(sessions, startTime, endTime)
                 if (config.geoservices && config.geoservices.enabled) {
-                    countCountries(sessions)
+                    countryList = countCountries(sessions)
                 }
+                storeInfo({ resulution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
             })
     }
 
@@ -100,7 +121,7 @@ export default (info) => {
                 }
             })
     }
-    const storeInfo = ({resulution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, countryList, returningListeners }) => {
+    const storeInfo = ({resulution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners }) => {
         const clientSpread = []
         for (let id in clientCount) {
             if (clientCount.hasOwnProperty(id)) {
@@ -120,6 +141,7 @@ export default (info) => {
             uniqueListeners,
             averageListeners,
             tlh,
+            averageSessionTime,
             clientSpread,
             geoSpread,
             returningListeners,
@@ -138,6 +160,16 @@ export default (info) => {
     new CronJob({
         cronTime: "0 * * * * *",
         onTick: calculateLastMinute,
+        start: true,
+    })
+    new CronJob({
+        cronTime: "0 0 * * * *",
+        onTick: calculateLastHour,
+        start: true,
+    })
+    new CronJob({
+        cronTime: "0 0 0 * * *",
+        onTick: calculateLastDay,
         start: true,
     })
 }
