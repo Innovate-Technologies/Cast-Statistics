@@ -110,15 +110,20 @@ export default (info) => {
     }
 
     const calculateLastDay = () => {
-        rest.get(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${(new Date((new Date()).getTime() - ONE_DAY)).toJSON()}/${(new Date()).toJSON()}`)
+        const startTime = new Date((new Date()).getTime() - ONE_DAY)
+        const endTime = new Date()
+        rest.get(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${startTime.toJSON()}/${endTime.toJSON()}`)
             .on("complete", (sessions) => {
-                countListeners(sessions)
-                countClients(sessions)
-                calculateTLH(sessions)
-                calculateAverageSessionTime(sessions)
+                let countryList = null;
+                const uniqueListeners = groupUniqueListeners(sessions)
+                const clientCount = countClients(sessions)
+                const returningListeners = countReturningListeners(sessions)
+                const tlh = calculateTLH(sessions, startTime, endTime)
+                const averageSessionTime = calculateAverageSessionTime(sessions, startTime, endTime)
                 if (config.geoservices && config.geoservices.enabled) {
-                    countCountries(sessions)
+                    countryList = countCountries(sessions)
                 }
+                storeInfo({ resulution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
             })
     }
     const storeInfo = ({resulution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners }) => {
