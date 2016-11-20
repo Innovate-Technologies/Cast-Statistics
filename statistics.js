@@ -3,7 +3,7 @@
 */
 
 import statisticEvents from "./statistics/events.js"
-// import statisticCalculation from "./statistics/calculation.js"
+import statisticCalculation from "./statistics/calculation.js"
 
 const info = {
     itframeURL: config.itframeURL || "https://itframe.innovatete.ch",
@@ -12,7 +12,7 @@ const info = {
 }
 if (info.key) {
     statisticEvents(info)
-    // statisticCalculation(info)
+    statisticCalculation(info)
 } else {
     console.log("No statistics key has been found")
 }

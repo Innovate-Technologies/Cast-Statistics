@@ -53,7 +53,7 @@ export default async (info) => {
         })
     })
 
-    await closeAllSessions()
+    // await closeAllSessions()
 
     events.on("listenerTunedIn", (listenerInfo) => {
         if (!listenerInfo) {
@@ -65,7 +65,6 @@ export default async (info) => {
                 listenerPromisesPerStream[listenerInfo.stream] = {}
             }
             listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id] = getListenerUID(listenerInfo)
-            // _.findWhere(streams.streamListeners[listenerInfo.stream][listenerInfo.id], { id: listenerInfo.id }).statsPromise = getListenerUID(listenerInfo)
         } catch (error) {
             console.log(error)
         }
