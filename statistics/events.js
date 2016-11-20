@@ -53,7 +53,7 @@ export default async (info) => {
         })
     })
 
-    // await closeAllSessions()
+    await closeAllSessions()
 
     events.on("listenerTunedIn", (listenerInfo) => {
         if (!listenerInfo) {
