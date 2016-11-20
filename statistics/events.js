@@ -60,7 +60,6 @@ export default async (info) => {
             return;
         }
         try {
-            console.log("Registering " + listenerInfo.id + "on" + listenerInfo.stream)
             if (!listenerPromisesPerStream[listenerInfo.stream]) {
                 listenerPromisesPerStream[listenerInfo.stream] = {}
             }
