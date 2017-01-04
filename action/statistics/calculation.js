@@ -87,7 +87,7 @@ export default (info) => {
                 if (config.geoservices && config.geoservices.enabled) {
                     countryList = countCountries(sessions)
                 }
-                storeInfo({ resulution: "minute", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length })
+                storeInfo({ resolution: "minute", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length })
             })
     }
 
@@ -105,7 +105,7 @@ export default (info) => {
                 if (config.geoservices && config.geoservices.enabled) {
                     countryList = countCountries(sessions)
                 }
-                storeInfo({ resulution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
+                storeInfo({ resolution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
             })
     }
 
@@ -123,10 +123,10 @@ export default (info) => {
                 if (config.geoservices && config.geoservices.enabled) {
                     countryList = countCountries(sessions)
                 }
-                storeInfo({ resulution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
+                storeInfo({ resolution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
             })
     }
-    const storeInfo = ({resulution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners }) => {
+    const storeInfo = ({resolution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners }) => {
         const clientSpread = []
         for (let id in clientCount) {
             if (clientCount.hasOwnProperty(id)) {
@@ -141,7 +141,7 @@ export default (info) => {
         }
 
         const storageObject = {
-            resulution,
+            resolution,
             totalSessions,
             uniqueListeners,
             averageListeners,
