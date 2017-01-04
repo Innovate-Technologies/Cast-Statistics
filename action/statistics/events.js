@@ -1,4 +1,5 @@
 import rest from "restler"
+const CronJob = require("cron").CronJob;
 
 export default async (info) => {
 
@@ -69,4 +70,33 @@ export default async (info) => {
         }
     })
     events.on("listenerTunedOut", closeListenerSession)
+
+    const postStatus = (streaminfo) => {
+        rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-status`, streaminfo, {
+            timeout: 100000,
+        }).on("complete", function (body, response) {
+            if (response.statusCode === 200 || response.statusCode === 204) {
+                return
+            }
+            this.retry(2000)
+        }).on("timeout", function () {
+            this.retry(2000)
+        })
+    }
+
+    const reportStatus = () => {
+        for (let stream of global.streams.getActiveStreams()) {
+            postStatus({
+                username: info.username,
+                listenerCount: global.getListeners(stream).length,
+            })
+        }
+    }
+
+    new CronJob({
+        cronTime: "0 * * * * *",
+        onTick: reportStatus,
+        start: true,
+    })
+
 }
