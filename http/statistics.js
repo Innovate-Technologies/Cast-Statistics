@@ -9,6 +9,7 @@ export default (app) => {
         target: info.itframeURL,
         changeOrigin: true,
         pathRewrite: {},
+        logLevel: "silent",
     }
 
     proxyOptions.pathRewrite[`^/api/statistics/${global.config.apikey}/`] = `/cast/statistics/${info.username}/${info.key}/`
