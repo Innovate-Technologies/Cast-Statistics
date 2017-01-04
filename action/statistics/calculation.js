@@ -68,12 +68,29 @@ const calculateAverageSessionTime = (sessions, startTime, endTime) => {
             session.endTime = new Date(session.endTime)
         }
         const diffTime = session.endTime.getTime() - session.startTime.getTime()
-        if (diffTime > 5 ) { // Under 5 seconds is't a real session
+        if (diffTime > 5) { // Under 5 seconds is't a real session
             usefulSessions++
             totalMilliSeconds += session.endTime.getTime() - session.startTime.getTime()
         }
     }
     return (totalMilliSeconds / 1000) / usefulSessions
+}
+
+const calculateUsefulListenersCount = (sessions) => {
+    let count = 0;
+    for (let session of sessions) {
+        session.startTime = new Date(session.startTime)
+        if (!session.endTime) {
+            session.endTime = new Date()
+        } else {
+            session.endTime = new Date(session.endTime)
+        }
+        const diffTime = session.endTime.getTime() - session.startTime.getTime()
+        if (diffTime > 5) { // Under 5 seconds is't a real session
+            count++
+        }
+    }
+    return count
 }
 
 export default (info) => {
@@ -87,7 +104,7 @@ export default (info) => {
                 if (config.geoservices && config.geoservices.enabled) {
                     countryList = countCountries(sessions)
                 }
-                storeInfo({ resolution: "minute", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length })
+                storeInfo({ resolution: "minute", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, usefulSessions: calculateUsefulListenersCount(sessions) })
             })
     }
 
@@ -105,7 +122,7 @@ export default (info) => {
                 if (config.geoservices && config.geoservices.enabled) {
                     countryList = countCountries(sessions)
                 }
-                storeInfo({ resolution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
+                storeInfo({ resolution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime, usefulSessions: calculateUsefulListenersCount(sessions) })
             })
     }
 
@@ -123,10 +140,10 @@ export default (info) => {
                 if (config.geoservices && config.geoservices.enabled) {
                     countryList = countCountries(sessions)
                 }
-                storeInfo({ resolution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime })
+                storeInfo({ resolution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime, usefulSessions: calculateUsefulListenersCount(sessions) })
             })
     }
-    const storeInfo = ({resolution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners }) => {
+    const storeInfo = ({resolution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners, usefulSessions }) => {
         const clientSpread = []
         for (let id in clientCount) {
             if (clientCount.hasOwnProperty(id)) {
@@ -150,6 +167,7 @@ export default (info) => {
             clientSpread,
             geoSpread,
             returningListeners,
+            usefulSessions,
         }
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-calculated-info/`, storageObject, {
             timeout: 100000,
