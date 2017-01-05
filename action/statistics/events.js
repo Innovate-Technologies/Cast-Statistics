@@ -88,7 +88,7 @@ export default async (info) => {
         for (let stream of global.streams.getActiveStreams()) {
             postStatus({
                 username: info.username,
-                listenerCount: global.getListeners(stream).length,
+                listenerCount: global.streams.getListeners(stream).length,
                 stream,
             })
         }
