@@ -89,6 +89,7 @@ export default async (info) => {
             postStatus({
                 username: info.username,
                 listenerCount: global.getListeners(stream).length,
+                stream,
             })
         }
     }
