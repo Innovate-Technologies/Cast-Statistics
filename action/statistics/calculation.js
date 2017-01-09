@@ -99,10 +99,25 @@ const calculateUsefulListenersCount = (sessions) => {
     return count
 }
 
+const calculateAverageListeners = (statuses) => {
+    const statusesByStream = _.groupBy(statuses, "stream")
+    let average = 0
+    for (let statuses of statusesByStream) {
+        let total = 0
+        for (let status of statuses) {
+            total += status.listenerCount
+        }
+        average += total / statuses.length
+    }
+    return average
+}
+
 export default (info) => {
     const calculateLastMinute = async () => {
         const sessions = await getData(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${(new Date((new Date()).getTime() - ONE_MINUTE)).toJSON()}/${(new Date()).toJSON()}`)
+        const statuses = await getData(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-statuses-for-period/${(new Date((new Date()).getTime() - ONE_MINUTE)).toJSON()}/${(new Date()).toJSON()}`)
 
+        const averageListeners = calculateAverageListeners(statuses)
         let countryList = null;
         const uniqueListeners = groupUniqueListeners(sessions)
         const clientCount = countClients(sessions)
@@ -110,14 +125,16 @@ export default (info) => {
         if (config.geoservices && config.geoservices.enabled) {
             countryList = countCountries(sessions)
         }
-        storeInfo({ resolution: "minute", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, usefulSessions: calculateUsefulListenersCount(sessions) })
+        storeInfo({ resolution: "minute", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, usefulSessions: calculateUsefulListenersCount(sessions), averageListeners })
     }
 
     const calculateLastHour = async () => {
         const startTime = new Date((new Date()).getTime() - ONE_HOUR)
         const endTime = new Date()
         const sessions = await getData(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${startTime.toJSON()}/${endTime.toJSON()}`)
+        const statuses = await getData(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-statuses-for-period/${startTime.toJSON()}/${endTime.toJSON()}`)
 
+        const averageListeners = calculateAverageListeners(statuses)
         let countryList = null;
         const uniqueListeners = groupUniqueListeners(sessions)
         const clientCount = countClients(sessions)
@@ -127,7 +144,7 @@ export default (info) => {
         if (config.geoservices && config.geoservices.enabled) {
             countryList = countCountries(sessions)
         }
-        storeInfo({ resolution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime, usefulSessions: calculateUsefulListenersCount(sessions) })
+        storeInfo({ resolution: "hour", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime, usefulSessions: calculateUsefulListenersCount(sessions), averageListeners })
 
     }
 
@@ -135,7 +152,9 @@ export default (info) => {
         const startTime = new Date((new Date()).getTime() - ONE_DAY)
         const endTime = new Date()
         const sessions = await getData(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-all-sessions-for-period/${startTime.toJSON()}/${endTime.toJSON()}`)
+        const statuses = await getData(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/get-statuses-for-period/${startTime.toJSON()}/${endTime.toJSON()}`)
 
+        const averageListeners = calculateAverageListeners(statuses)
         let countryList = null;
         const uniqueListeners = groupUniqueListeners(sessions)
         const clientCount = countClients(sessions)
@@ -145,7 +164,7 @@ export default (info) => {
         if (config.geoservices && config.geoservices.enabled) {
             countryList = countCountries(sessions)
         }
-        storeInfo({ resolution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime, usefulSessions: calculateUsefulListenersCount(sessions) })
+        storeInfo({ resolution: "day", totalSessions: sessions.length, uniqueListeners: Object.keys(uniqueListeners).length, clientCount, countryList, returningListeners: returningListeners.length, tlh, averageSessionTime, usefulSessions: calculateUsefulListenersCount(sessions), averageListeners })
 
     }
     const storeInfo = ({resolution, totalSessions, uniqueListeners, clientCount, averageListeners, tlh, averageSessionTime, countryList, returningListeners, usefulSessions }) => {
