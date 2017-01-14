@@ -102,12 +102,14 @@ const calculateUsefulListenersCount = (sessions) => {
 const calculateAverageListeners = (statuses) => {
     const statusesByStream = _.groupBy(statuses, "stream")
     let average = 0
-    for (let streamStatuses of statusesByStream) {
-        let total = 0
-        for (let status of streamStatuses) {
-            total += status.listenerCount
+    for (let stream in statusesByStream) {
+        if (statusesByStream.hasOwnProperty(stream)) {
+            let total = 0
+            for (let status of statusesByStream[stream]) {
+                total += status.listenerCount
+            }
+            average += total / statusesByStream[stream].length
         }
-        average += total / streamStatuses.length
     }
     return average
 }
