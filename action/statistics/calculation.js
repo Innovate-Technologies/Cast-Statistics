@@ -8,8 +8,13 @@ const ONE_HOUR = 60 * ONE_MINUTE
 const ONE_DAY = 24 * ONE_HOUR
 
 const getData = (url) => new Promise((resolve) => {
-    rest.get(url).on("complete", (data) => {
-        resolve(data)
+    rest.get(url, { timeout: 10000 }).on("complete", function (data, response) {
+        if (response && (response.statusCode !== 200 && response.statusCode !== 204)) {
+            return resolve(data)
+        }
+        this.retry(2000)
+    }).on("timeout", function () {
+        this.retry(2000)
     })
 })
 
@@ -198,7 +203,7 @@ export default (info) => {
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-calculated-info/`, storageObject, {
             timeout: 100000,
         }).on("complete", function (body, response) {
-            if (response.statusCode === 200 || response.statusCode === 204) {
+            if (response && (response.statusCode !== 200 && response.statusCode !== 204)) {
                 return
             }
             this.retry(2000)
