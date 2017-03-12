@@ -27,7 +27,7 @@ export default async (info) => {
                 rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/close-session`, { uid }, {
                     timeout: 100000,
                 }).on("complete", function (body, response) {
-                    if (response && (response.statusCode !== 200 && response.statusCode !== 204)) {
+                    if (!response || (response.statusCode !== 200 && response.statusCode !== 204)) {
                         return this.retry(2000)
                     }
                     delete listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]
