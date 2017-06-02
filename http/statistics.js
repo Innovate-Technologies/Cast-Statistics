@@ -10,6 +10,9 @@ export default (app) => {
         changeOrigin: true,
         pathRewrite: {},
         logLevel: "silent",
+        onProxyRes: (proxyRes) => {
+            proxyRes.headers = {}; // delete all headers
+        },
     }
 
     proxyOptions.pathRewrite[`^/api/statistics/${global.config.apikey}/`] = `/cast/statistics/${info.username}/${info.key}/`
