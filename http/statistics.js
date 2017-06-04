@@ -13,6 +13,9 @@ export default (app) => {
         onProxyRes: (proxyRes) => {
             proxyRes.headers = {}; // delete all headers
         },
+        headers: {
+            "Accept-Encoding": "",
+        },
     }
 
     proxyOptions.pathRewrite[`^/api/statistics/${global.config.apikey}/`] = `/cast/statistics/${info.username}/${info.key}/`
