@@ -71,6 +71,22 @@ export default async (info) => {
     })
     events.on("listenerTunedOut", closeListenerSession)
 
+    events.on("metadata", (meta) => {
+        if (!meta) {
+            return
+        }
+        rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-song`, meta, {
+            timeout: 100000,
+        }).on("complete", function (body, response) {
+            if (response && (response.statusCode === 200 || response.statusCode === 204)) {
+                return
+            }
+            this.retry(2000)
+        }).on("timeout", function () {
+            this.retry(2000)
+        })
+    });
+
     const postStatus = (streaminfo) => {
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-status`, streaminfo, {
             timeout: 100000,
