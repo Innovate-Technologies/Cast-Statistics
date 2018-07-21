@@ -11,7 +11,14 @@ export default (app) => {
         pathRewrite: {},
         logLevel: "silent",
         onProxyRes: (proxyRes) => {
-            proxyRes.headers = {}; // delete all headers
+            const newHeaders = {}
+            if (proxyRes.headers["Content-Type"]) {
+                newHeaders["Content-Type"] = proxyRes.headers["Content-Type"]
+            }
+            if (proxyRes.headers["Content-Disposition"]) {
+                newHeaders["Content-Disposition"] = proxyRes.headers["Content-Disposition"]
+            }
+            proxyRes.headers = newHeaders; // replace all headers
         },
         headers: {
             "Accept-Encoding": "",
