@@ -1,9 +1,12 @@
 import rest from "restler"
 const CronJob = require("cron").CronJob;
 
+const ONE_HOUR = 60 * 60 * 1000
+
 export default async (info) => {
 
     const listenerPromisesPerStream = {}
+    const closedListenerPromisesPerStream = {}
 
     const getListenerUID = (listenerInfo) => new Promise((resolve) => {
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, listenerInfo, {
@@ -19,7 +22,15 @@ export default async (info) => {
     })
 
     const closeListenerSession = (listenerInfo) => {
-        if (listenerInfo && listenerInfo.id && listenerPromisesPerStream[listenerInfo.stream] && listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]) {
+        if (!listenerInfo) {
+            return;
+        }
+        if (!closedListenerPromisesPerStream[listenerInfo.stream]) {
+            closedListenerPromisesPerStream[listenerInfo.stream] = {}
+        }
+        closedListenerPromisesPerStream[listenerInfo.stream][listenerInfo.id] = Date.now()  
+
+        if (listenerInfo.id && listenerPromisesPerStream[listenerInfo.stream] && listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]) {
             listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id].then(({ uid }) => {
                 if (!uid) {
                     return
@@ -59,6 +70,9 @@ export default async (info) => {
     events.on("listenerTunedIn", (listenerInfo) => {
         if (!listenerInfo) {
             return;
+        }
+        if (listenerInfo.id && closedListenerPromisesPerStream[listenerInfo.stream] && closedListenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]) { 
+            return
         }
         try {
             if (!listenerPromisesPerStream[listenerInfo.stream]) {
@@ -110,9 +124,29 @@ export default async (info) => {
         }
     }
 
+    const cleanClosedSessions = () => {
+        for (let stream in closedListenerPromisesPerStream) {
+            if (closedListenerPromisesPerStream.hasOwnProperty(stream)) {
+                for (let id in closedListenerPromisesPerStream[stream]){
+                    if (closedListenerPromisesPerStream[stream].hasOwnProperty(id)) {
+                        if (closedListenerPromisesPerStream[stream][id].getTime() - Date.now().getTime() > ONE_HOUR) {
+                            delete closedListenerPromisesPerStream[stream][id]
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     new CronJob({
         cronTime: "0 * * * * *",
         onTick: reportStatus,
+        start: true,
+    })
+
+    new CronJob({
+        cronTime: "0 * * * * *",
+        onTick: cleanClosedSessions,
         start: true,
     })
 
