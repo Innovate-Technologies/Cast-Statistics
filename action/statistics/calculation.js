@@ -1,5 +1,6 @@
 import rest from "restler"
 import _ from "underscore"
+import { format } from "path";
 const CronJob = require("cron").CronJob;
 
 const ONE_SECOND = 1000
@@ -49,10 +50,10 @@ const countCountries = (sessions) => {
 }
 
 const calculateTLH = (sessions, startTime, endTime) => {
-    let totalMilliSeconds = 0
+    let total= 0
     for (let session of sessions) {
         session.startTime = new Date(session.startTime)
-        if (session.startTime < startTime) {
+        if (session.startTime.getTime() < startTime.getTime()) {
             session.startTime = startTime
         }
         if (!session.endTime) {
@@ -60,9 +61,19 @@ const calculateTLH = (sessions, startTime, endTime) => {
         } else {
             session.endTime = new Date(session.endTime)
         }
-        totalMilliSeconds += session.endTime.getTime() - session.startTime.getTime()
+        
+        let total = session.endTime.getTime() - session.startTime.getTime()
+        total /= 1000 // seconds
+        total /= 60 // minutes
+        total /= 60 // hours
+        if (total < 0) {
+            // negative?
+            continue
+        }
+
+        total+= total
     }
-    return totalMilliSeconds / 60 / 60 / 1000 // milliseconds to hour
+    return total
 }
 
 const calculateAverageSessionTime = (sessions, startTime, endTime) => {
@@ -70,7 +81,7 @@ const calculateAverageSessionTime = (sessions, startTime, endTime) => {
     let usefulSessions = 0
     for (let session of sessions) {
         session.startTime = new Date(session.startTime)
-        if (session.startTime < startTime) {
+        if (session.startTime.getTime() < startTime.getTime()) {
             session.startTime = startTime
         }
         if (!session.endTime) {
