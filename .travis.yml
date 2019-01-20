@@ -2,7 +2,9 @@ language: node_js
 node_js:
 - '10'
 env:
-- CXX=g++-4.8
+  global:
+  - CXX=g++-4.8
+  - DOCKER_REPO=innovate/cast-stats
 addons:
   apt:
     sources:
@@ -14,4 +16,12 @@ os:
 
 script:
 - npm -g install babel-cli
-- babel ./ -d bin --minified --ignore 'node_modules/'
+- babel ./ -d ./bin --minified --ignore 'node_modules/'
+- docker build -t $DOCKER_REPO:latest ./
+
+
+after_success:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker push $DOCKER_REPO:latest ; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker tag $DOCKER_REPO:latest $DOCKER_REPO:$TRAVIS_COMMIT; docker push $DOCKER_REPO:$TRAVIS_COMMIT ; fi
+  - if [ "$TRAVIS_TAG" != "" ]; then docker tag $DOCKER_REPO:latest $DOCKER_REPO:$TRAVIS_TAG; docker push $DOCKER_REPO:$TRAVIS_TAG ; fi
