@@ -129,7 +129,7 @@ export default async (info) => {
             if (closedListenerPromisesPerStream.hasOwnProperty(stream)) {
                 for (let id in closedListenerPromisesPerStream[stream]){
                     if (closedListenerPromisesPerStream[stream].hasOwnProperty(id)) {
-                        if (closedListenerPromisesPerStream[stream][id] - Date.now() > ONE_HOUR) {
+                        if (Date.now() - closedListenerPromisesPerStream[stream][id] > ONE_HOUR) {
                             delete closedListenerPromisesPerStream[stream][id]
                         }
                     }
