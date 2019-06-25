@@ -9,19 +9,23 @@ export default async (info) => {
     const closedListenerPromisesPerStream = {}
 
     const getListenerUID = (listenerInfo) => new Promise((resolve) => {
+        let r = 0
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, listenerInfo, {
             timeout: 100000,
         }).on("complete", function (body, response) {
             if (response && (response.statusCode === 200 || response.statusCode === 204)) {
                 return resolve(body)
             }
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         }).on("timeout", function () {
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         })
     })
 
     const closeListenerSession = (listenerInfo) => {
+        let r = 0
         if (!listenerInfo) {
             return;
         }
@@ -39,11 +43,13 @@ export default async (info) => {
                     timeout: 100000,
                 }).on("complete", function (body, response) {
                     if (!response || (response.statusCode !== 200 && response.statusCode !== 204)) {
-                        return this.retry(2000)
+                        r++
+                        return this.retry(2000^r)
                     }
                     delete listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]
                 }).on("timeout", function () {
-                    this.retry(2000)
+                    r++
+                    this.retry(2000^r)
                 })
             })
         } else {
@@ -53,15 +59,18 @@ export default async (info) => {
     }
 
     const closeAllSessions = () => new Promise((resolve) => {
+        let r = 0
         rest.post(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/close-all-sessions`, {
             timeout: 100000,
         }).on("complete", function (body, response) {
             if (response && (response.statusCode === 200 || response.statusCode === 204)) {
                 return resolve(body)
             }
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         }).on("timeout", function () {
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         })
     })
 
@@ -89,28 +98,34 @@ export default async (info) => {
         if (!meta) {
             return
         }
+        let r = 0
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-song`, meta, {
             timeout: 100000,
         }).on("complete", function (body, response) {
             if (response && (response.statusCode === 200 || response.statusCode === 204)) {
                 return
             }
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         }).on("timeout", function () {
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         })
     });
 
     const postStatus = (streaminfo) => {
+        let r = 0
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-status`, streaminfo, {
             timeout: 100000,
         }).on("complete", function (body, response) {
             if (response && (response.statusCode === 200 || response.statusCode === 204)) {
                 return
             }
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         }).on("timeout", function () {
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         })
     }
 

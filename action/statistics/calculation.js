@@ -8,14 +8,20 @@ const ONE_MINUTE = 60 * ONE_SECOND
 const ONE_HOUR = 60 * ONE_MINUTE
 const ONE_DAY = 24 * ONE_HOUR
 
-const getData = (url) => new Promise((resolve) => {
+const getData = (url) => new Promise((resolve, reject) => {
+    let r = 0;
     rest.get(url, { timeout: 10000 }).on("complete", function (data, response) {
         if (response && (response.statusCode === 200 || response.statusCode === 204)) {
             return resolve(data)
         }
-        this.retry(2000)
+        if (response && response.statusCode < 500) {
+            return reject(data)
+        }
+        r++
+        this.retry(2000^r)
     }).on("timeout", function () {
-        this.retry(2000)
+        r++;
+        this.retry(2000^r)
     })
 })
 
@@ -211,15 +217,21 @@ export default (info) => {
             returningListeners,
             usefulSessions,
         }
+        let r = 0;
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/store-calculated-info/`, storageObject, {
             timeout: 100000,
         }).on("complete", function (body, response) {
             if (response && (response.statusCode === 200 || response.statusCode === 204)) {
                 return
             }
-            this.retry(2000)
+            if (response && response.statusCode < 500) {
+                return
+            }
+            r++
+            this.retry(2000^r)
         }).on("timeout", function () {
-            this.retry(2000)
+            r++
+            this.retry(2000^r)
         })
     }
     new CronJob({
