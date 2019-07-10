@@ -8,6 +8,12 @@ export default async (info) => {
     const listenerPromisesPerStream = {}
     const closedListenerPromisesPerStream = {}
 
+    const wait = (delay) => new Promise((resolve) => {
+      setTimeout(function() {
+        resolve();
+      }, delay)
+    })
+
     const getListenerUID = (listenerInfo) => new Promise((resolve) => {
         let r = 0
         rest.postJson(`${info.itframeURL}/cast/statistics/${info.username}/${info.key}/create-session`, listenerInfo, {
@@ -80,17 +86,19 @@ export default async (info) => {
         if (!listenerInfo) {
             return;
         }
-        if (listenerInfo.id && closedListenerPromisesPerStream[listenerInfo.stream] && closedListenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]) { 
-            return
-        }
-        try {
-            if (!listenerPromisesPerStream[listenerInfo.stream]) {
-                listenerPromisesPerStream[listenerInfo.stream] = {}
+        wait(5000).then(() => { // only record listener if still there after 5 seconds to verify it is not a failed request
+            if (listenerInfo.id && closedListenerPromisesPerStream[listenerInfo.stream] && closedListenerPromisesPerStream[listenerInfo.stream][listenerInfo.id]) { 
+                return
             }
-            listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id] = getListenerUID(listenerInfo)
-        } catch (error) {
-            console.log(error)
-        }
+            try {
+                if (!listenerPromisesPerStream[listenerInfo.stream]) {
+                    listenerPromisesPerStream[listenerInfo.stream] = {}
+                }
+                listenerPromisesPerStream[listenerInfo.stream][listenerInfo.id] = getListenerUID(listenerInfo)
+            } catch (error) {
+                console.log(error)
+            }
+        })
     })
     events.on("listenerTunedOut", closeListenerSession)
 
