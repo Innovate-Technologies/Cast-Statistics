@@ -21,7 +21,7 @@
     "http-proxy-middleware": "^0.20.0",
     "restler": "^3.4.0",
     "underscore": "^1.9.1",
-    "snyk": "^1.232.0"
+    "snyk": "^1.319.1"
   },
   "scripts": {
     "snyk-protect": "snyk protect",
